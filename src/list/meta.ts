@@ -146,8 +146,10 @@ export const classes = {
     checkboxCell: 'js-cell_selection',
     cellFocused: 'cell-focused',
     cellEditable: 'cell_editable',
+    cellError: 'error',
     cell: 'cell',
-    hiddenByTreeEditorClass: 'hidden-by-tree-editor',    
+    errorButton: 'js-error-button',
+    hiddenByTreeEditorClass: 'hidden-by-tree-editor',
     sortingUp: 'arrow-up',
     sortingDown: 'arrow-down'
 };

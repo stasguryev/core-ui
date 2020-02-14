@@ -55,6 +55,9 @@
     min-width: 100%;
     border-collapse: separate;
     table-layout: fixed;
+    position: absolute;
+    will-change: top;
+    contain: strict;
 }
 
 .grid-content-wrp.grid-content-wrp_width-auto {
@@ -451,14 +454,15 @@ tr.empty-view {
 /* /Editable Grid */
 
 /* New grid */
-.cell {
+
+/* .cell {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     background-clip: padding-box;
-    max-width: 0; /* hack to set width less than cells content */
+    max-width: 0; /* hack to set width less than cells content
     width: auto;
-}
+} */
 
 .cell_editable {
     display: flex;
@@ -592,10 +596,8 @@ tr.dragover td {
     text-overflow: ellipsis;
     font-size: 13px;
     background-clip: padding-box;
-}
-
-.cell .checkbox {
-    margin: 0 auto;
+    margin-right: 25px;
+    margin-left: 3px;
 }
 
 .cell-right,
@@ -751,7 +753,6 @@ tr.dragover td {
 
 .grid-table-wrapper {
     min-height: 100%;
-    display: block;
     width: 100%;
 }
 
@@ -760,6 +761,8 @@ tr.dragover td {
     flex-grow: 1;
     flex-shrink: 1;
     max-height: 100%;
+    will-change: scroll-position;
+    contain: content;
 }
 
 .grid-label_tree-editor {
@@ -775,6 +778,7 @@ tr.dragover td {
     box-sizing: content-box;
     border: 1px solid #e2e2e2;
     flex: 0 0 auto;
+    display: inline-block;
 }
 
 .composite-user-abr__container img {

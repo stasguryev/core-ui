@@ -45,6 +45,16 @@
     border-color: var(--checkbox-border-color);
 }
 
+.checkbox i,
+.icon-true {
+    color: var(--checkbox-checked-color);
+}
+
+.icon-false {
+    color: var(--red);
+    font-size: 1.2em;
+}
+
 .tr-search__input {
     @apply --input-theme;
 

@@ -21,7 +21,7 @@ export default {
         rootView.showChildView('popupStackRegion', this.__popupStackView);
 
         this.__popupStackView.on('popup:close', popupId => this.trigger('popup:close', popupId));
-        this.listenTo(GlobalEventService, 'window:keydown:captured', (document, event) => this.__keyAction(event));
+        this.listenTo(GlobalEventService, 'window:keydown', (document, event) => this.__keyAction(event));
     },
 
     /**

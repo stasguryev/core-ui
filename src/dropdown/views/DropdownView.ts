@@ -145,6 +145,11 @@ export default class DropdownView {
 
         this.button.on('destroy', this.__onDestroy, this);
 
+        if (options.element) {
+            this.button.el = options.element;
+            this.button.$el = Backbone.$(options.element);
+        }
+
         return this.button;
     }
 

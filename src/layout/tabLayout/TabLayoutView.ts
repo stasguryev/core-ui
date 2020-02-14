@@ -183,7 +183,8 @@ export default Marionette.View.extend({
     },
 
     isAllHiddenTab() {
-        const visibleCollection = this.__tabsCollection.filter(tabModel => tabModel.isShow());
+        // can be virtual collection
+        const visibleCollection = this.__tabsCollection.models.filter(tabModel => tabModel.isShow());
 
         // all tabs hidden: show message instead of tab panel
         if (!visibleCollection.length) {
@@ -195,7 +196,8 @@ export default Marionette.View.extend({
     __onChangeShowing(tab: Backbone.Model) {
         const isShow = tab.isShow();
 
-        const visibleCollection = this.__tabsCollection.filter(tabModel => tabModel.isShow());
+        // can be virtual collection
+        const visibleCollection = this.__tabsCollection.models.filter(tabModel => tabModel.isShow());
         let newTabIndex;
 
         let selectedtab = this.__getSelectedTab();

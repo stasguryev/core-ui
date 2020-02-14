@@ -514,15 +514,17 @@ export default function(viewClass: Marionette.View | Marionette.CollectionView) 
             const validators = this.validators;
             const getValidator = this.getValidator;
 
-            if (validators) {
-                validators.forEach(validatorOptions => {
-                    const validator = getValidator(validatorOptions);
-                    const error = validator.call(this, value, formValues);
-                    if (error) {
-                        errors.push(error)
-                    }
-                });
+            if (!validators) { 
+                return;
             }
+
+            validators.forEach(validatorOptions => {
+                const validator = getValidator(validatorOptions);
+                const error = validator.call(this, value, formValues);
+                if (error) {
+                    errors.push(error);
+                }
+            });
 
             if (this.isRendered() && !this.isDestroyed()) {
                 this.$editorEl.toggleClass(classes.ERROR, !!errors.length);

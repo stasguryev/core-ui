@@ -79,6 +79,10 @@ body {
     border-top: 16px solid #e61212;
     border-right: 16px solid transparent;
     vertical-align: top;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .cell.error .form-label__error-button::after {
@@ -86,7 +90,7 @@ body {
     color: #ffffff;
     position: absolute;
     vertical-align: top;
-    top: 0;
+    top: -16px;
     font-size: 10px;
     font-weight: bold;
     left: 3px;
@@ -477,8 +481,18 @@ svg.svg-grid-icons {
     padding: var(--grid-cell-padding);
     border-top: none;
     position: relative;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    background-clip: padding-box;
+    max-width: 0; /* hack to set width less than cells content */
+    width: auto;
+    border-top: none;
+    border-right: 1px solid #e2e2e2;
+    border-bottom: 1px solid #e2e2e2;
+    border-left: none;
 }
-
+/* 
 .cell,
 .cell_selection,
 .cell_selection-index {
@@ -486,7 +500,7 @@ svg.svg-grid-icons {
     border-right: 1px solid #e2e2e2;
     border-bottom: 1px solid #e2e2e2;
     border-left: none;
-}
+} */
 
 .cell:first-child,
 .cell_selection:first-child,
@@ -555,6 +569,16 @@ svg.svg-grid-icons {
     cursor: move;
 }
 
+.cell_selection[draggable]:hover::before,
+.cell_selection-index[draggable]:hover::before {
+    content: '⋮';
+    font-size: 1.5em;
+    position: absolute;
+    top: 50%;
+    left: 1px;
+    transform: translate(0, -50%);
+}
+
 .grid__headless .cell_selection:first-child {
     box-shadow: var(--grid-cell-border-first-headless);
 }
@@ -606,12 +630,14 @@ tr:hover .cell_selection-index {
     font-size: var(--grid-checkbox-icon-size);
     width: var(--grid-checkbox-size);
     height: var(--grid-checkbox-size);
+    margin: 0;
+}
 
-    /* for chrome margin: 0 auto align broke border for cell_selection column, for IE top is not applied */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.cell_selection > .checkbox {
+    font-size: var(--grid-checkbox-icon-size);
+    width: var(--grid-checkbox-size);
+    height: var(--grid-checkbox-size);
+    margin: 0 auto;
 }
 
 /* stylelint-disable */
@@ -645,11 +671,16 @@ _:-ms-lang(x),
     min-width: 47px;
     background-clip: padding-box;
     vertical-align: middle;
+    border-right: 1px solid #e2e2e2;
+    border-bottom: 1px solid #e2e2e2;
+    border-left: none;
 }
 
 .cell_selection-index > .checkbox {
-    float: right;
-    margin-top: 2px;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translate(0, -50%);
 }
 
 /* for IE */

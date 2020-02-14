@@ -23,6 +23,7 @@ import ErrorsPanelView from '../../views/ErrorsPanelView';
 import GlobalEventService from '../../services/GlobalEventService';
 import { GraphModel } from '../../components/treeEditor/types';
 import ConfigDiff from '../../components/treeEditor/classes/ConfigDiff';
+import { Column } from '../types/types';
 
 const classes = {
     REQUIRED: 'required',
@@ -62,7 +63,7 @@ const defaultOptions = options => ({
 
 const configConstants = {
     // VISIBLE_COLLECTION_RESERVE: 20,
-    VISIBLE_COLLECTION_RESERVE_HALF: 10
+    VISIBLE_COLLECTION_RESERVE_HALF: 1
     // VISIBLE_COLLECTION_AUTOSIZE_RESERVE: 100
 };
 
@@ -206,8 +207,9 @@ export default Marionette.View.extend({
             return;
         }
 
-        this.collection.updatePosition(Math.max(0, newPosition - configConstants.VISIBLE_COLLECTION_RESERVE_HALF));
         this.__updateTop();
+
+        this.collection.updatePosition(Math.max(0, newPosition - configConstants.VISIBLE_COLLECTION_RESERVE_HALF));
 
         this.listView.state.position = newPosition;
         if (shouldScrollElement) {
@@ -224,7 +226,10 @@ export default Marionette.View.extend({
     __updateTop() {
         requestAnimationFrame(() => {
             const top = Math.max(0, this.collection.indexOf(this.collection.visibleModels[0]) * this.listView.childHeight);
-            this.ui.tableWrapper[0].style.paddingTop = `${top}px`; //todo use transforme
+            if (top !== this.oldTop) {
+                this.oldTop = top;
+                this.ui.content[0].style.top = `${top}px`;
+            }          
         });
     },
 
@@ -549,67 +554,69 @@ export default Marionette.View.extend({
     },
 
     validate() {
-        let error;
+        const errors = [];
         if (this.required && this.collection.length === 0) {
-            error = {
+            errors.push({
                 type: 'required',
-                message: Localizer.get('CORE.FORM.VALIDATION.REQUIREDGRID')
-            };
-        } else if (this.isEditable) {
-            const hasErrorInFields = this.options.columns.some(column => {
-                if (!column.editable || !column.validators) {
-                    return false;
+                message: Localizer.get('CORE.FORM.VALIDATION.REQUIREDGRID'),
+                severity: 'Error'
+            });
+        }
+        if (this.isEditable) {
+            let isErrorInCells = false;
+            this.collection.forEach(model => {
+                delete model.validationError;
+                if (!model.isValid()) {
+                    isErrorInCells = true;
                 }
-                const validators = [];
-                return column.validators.some(validator => {
-                    let result;
-                    if (typeof validator === 'function') {
-                        validators.push(validator);
-                    } else {
-                        const predefined = form.repository.validators[validator];
-                        if (typeof predefined === 'function') {
-                            validators.push(predefined());
-                        }
+                this.options.columns.forEach((column: Column) => {
+                    if (!column.editable || !column.validators) {
+                        return;
                     }
-
-                    this.collection.forEach(model => {
-                        if (model._events['validate:force']) {
-                            const e = {};
-                            model.trigger('validate:force', e);
-                            if (e.validationResult) {
-                                result = e.validationResult;
-                            }
-                        } else if (!model.isValid()) {
-                            result = model.validationResult;
+                    const validators: Array<Function> = [];
+                    column.validators.forEach(validator => {
+                        if (typeof validator === 'function') {
+                            validators.push(validator);
                         } else {
-                            validators.some(v => {
-                                const filedError = v(model.get(column.key), model.attributes);
-                                if (filedError) {
-                                    result = model.validationResult = filedError;
-                                }
-                                return result;
-                            });
+                            const predefined = form.repository.validators[validator];
+                            if (typeof predefined === 'function') {
+                                validators.push(predefined());
+                            }
                         }
                     });
-                    return result;
+                    validators.forEach(v => {
+                        const fieldError = v(model.get(column.key), model.attributes);
+                        if (fieldError) {
+                            fieldError;
+                            isErrorInCells = true;
+                            if (!model.validationError) {
+                                model.validationError = {};
+                            }
+                            if (!model.validationError[column.key]) {
+                                model.validationError[column.key] = [];
+                            }
+                            model.validationError[column.key].push(fieldError);
+                        }
+                    });
                 });
+                model.trigger('validated');
             });
-            if (hasErrorInFields) {
-                error = {
+            if (isErrorInCells) {
+                errors.push({
                     type: 'gridError',
                     message: Localizer.get('CORE.FORM.VALIDATION.GRIDERROR'),
                     severity: 'Error'
-                };
+                });
             }
         }
 
-        if (error) {
-            this.setError([error]);
+        if (errors.length) {
+            this.setError(errors);
         } else {
             this.clearError();
         }
 
-        return error;
+        return errors;
     },
 
     setDraggable(draggable: boolean): void {

@@ -15,10 +15,10 @@ import Backbone from 'backbone';
  */
 
 const config = {
-    VISIBLE_COLLECTION_RESERVE: 20,
-    VISIBLE_COLLECTION_RESERVE_HALF: 10,
+    VISIBLE_COLLECTION_RESERVE: 2,
+    VISIBLE_COLLECTION_RESERVE_HALF: 1,
     VISIBLE_COLLECTION_AUTOSIZE_RESERVE: 100,
-    HEIGHT_STOCK_TO_SCROLL: 1 //px, border-collapse property for table (grid-content-wrp) add this 1 px
+    HEIGHT_STOCK_TO_SCROLL: 1, //px, border-collapse property for table (grid-content-wrp) add this 1 px
 };
 
 const heightOptions = {
@@ -188,7 +188,12 @@ export default Marionette.PartialCollectionView.extend({
 
         if (this._shouldAddChild(child, index)) {
             this._destroyEmptyView();
-            this._addChild(child, index);
+            // this._addChild(child, index);
+            requestAnimationFrame(() => {
+                if (collection.visibleModels.find(model => model === child)) {
+                    this._addChild(child, index);
+                }
+            });            
         }
     },
 
@@ -211,6 +216,17 @@ export default Marionette.PartialCollectionView.extend({
             if (this.getOption('isTree') && typeof child.insertFirstCellHtml === 'function') {
                 child.insertFirstCellHtml();
             }
+        });
+    },
+
+    _removeChildView(view) {
+        this.children._remove(view);
+        requestAnimationFrame(() => {
+            if (view.el.parentElement === this.el) {
+                //this.el.removeChild(view.el);
+                view.el.remove();
+            }
+            setTimeout(() => Marionette.PartialCollectionView.prototype._removeChildView.apply(this, arguments));      
         });
     },
 
@@ -433,7 +449,7 @@ export default Marionette.PartialCollectionView.extend({
         const oldViewportHeight = this.state.viewportHeight;
         const oldAllItemsHeight = this.state.allItemsHeight;
         //@ts-ignore
-        const availableHeight = this.options.parentEl?.clientHeight !== this.childHeight ? this.options.parentEl.clientHeight : window.innerHeight;
+        const availableHeight = this.el.clientHeight !== this.childHeight ? this.options.parentEl.clientHeight : window.innerHeight;
 
         this.state.viewportHeight = Math.max(1, Math.floor(Math.min(availableHeight, window.innerHeight) / this.childHeight));
 
