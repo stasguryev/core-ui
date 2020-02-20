@@ -15,8 +15,8 @@ import Backbone from 'backbone';
  */
 
 const config = {
-    VISIBLE_COLLECTION_RESERVE: 2,
-    VISIBLE_COLLECTION_RESERVE_HALF: 1,
+    VISIBLE_COLLECTION_RESERVE: 20,
+    VISIBLE_COLLECTION_RESERVE_HALF: 10,
     VISIBLE_COLLECTION_AUTOSIZE_RESERVE: 100,
     HEIGHT_STOCK_TO_SCROLL: 1, //px, border-collapse property for table (grid-content-wrp) add this 1 px
 };

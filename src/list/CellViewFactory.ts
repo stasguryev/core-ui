@@ -1,4 +1,4 @@
-import { objectPropertyTypes, contextIconType } from '../Meta';
+import { objectPropertyTypes, contextIconType, complexValueTypes, getComplexValueTypesLocalization } from '../Meta';
 import { Column } from './types/types';
 import { dateHelpers } from 'utils';
 import UserService from 'services/UserService';
@@ -9,6 +9,7 @@ import getIconPrefixer from '../utils/handlebars/getIconPrefixer';
 import compositeDocumentCell from './templates/compositeDocumentCell.html';
 import compositeUserCell from './templates/compositeUserCell.html';
 import compositeReferenceCell from './templates/compositeReferenceCell.html';
+import { cmpPos } from 'codemirror';
 
 const compiledCompositeDocumentCell = Handlebars.compile(compositeDocumentCell);
 const compiledCompositeReferenceCell = Handlebars.compile(compositeReferenceCell);
@@ -57,7 +58,7 @@ export default factory = {
         const value = model.get(column.key);
 
         if (this.__isEmpty(value) || column.getHidden?.(model)) {
-            return `<td class="${this.__getCellClass(column, model)}"></td>`;
+            return `<td class="${this.__getCellClass(column, model)}" tabindex="-1"></td>`;
         }
 
         let values = Array.isArray(value) ? value : [value];
@@ -84,6 +85,12 @@ export default factory = {
                 return this.__getDateTimeCell({ values, column, model });
             case objectPropertyTypes.DOCUMENT:
                 return this.__getDocumentCell({ values, column, model });
+            case 'Complex':
+                return this.__getComplexCell({ values, column, model });
+            // case 'Code':
+            //     return this.__getDocumentCell({ values, column, model });
+            // case 'Code':
+            //     return this.__getDocumentCell({ values, column, model });
             case objectPropertyTypes.STRING:
             default:
                 return this.__getStringCell({ values, column, model });
@@ -387,6 +394,82 @@ export default factory = {
                 <span class="extend_info">${model.get('alias') || ''}</span>
             </div>
             </td>`;
+    },
+
+    __getComplexCell({ values, column, model }) {
+        let valueHTML = '';
+        const title = this.__getTitle({ column, model, values });
+        const value = values[0];
+        const valueTypeHTML = getComplexValueTypesLocalization(value.type);
+        switch (value.type) {
+            case complexValueTypes.value:
+                valueHTML = this.__getHTMLbyValueEditor({ value: value.value, column, model });
+                break;
+            case complexValueTypes.context: {
+                if (!value.value || value.value === 'False' || !column.context || !column.recordTypeId) {
+                    valueHTML = '';
+                } else if (typeof value.value === 'string') {
+                    valueHTML = value.value;
+                } else {
+                    let instanceTypeId = column.recordTypeId;
+                    valueHTML = '';
+            
+                    value.value.forEach((item: string, index: number) => {
+                        const searchItem = column.context[instanceTypeId]?.find((contextItem: any) => contextItem.id === item);
+            
+                        if (searchItem) {
+                            valueHTML += index ? ` - ${searchItem.name}` : searchItem.name;
+                            instanceTypeId = searchItem[column.instanceValueProperty || 'instanceTypeId'];
+                        }
+                    });
+                }
+                break;
+            }
+            case complexValueTypes.expression:
+                valueHTML = value.value ? 'Edit' : 'Not set';
+                break;
+            case complexValueTypes.script:
+                valueHTML = value.value ? 'Edit' : 'Not set';
+                break;
+            case complexValueTypes.template:
+                valueHTML = value.value ? 'Edit' : 'Not set';
+                break;
+            default:
+                break;
+        }
+        return `<td class="${this.__getCellClass(column, model)}" title="${title}" tabindex="-1">${valueTypeHTML}: ${valueHTML}</td>`;
+    },
+
+    __getHTMLbyValueEditor({ value, column, model }) {
+        const columnWithExtention = { ...column, ...(column.schemaExtension?.(model) || {}) };
+        let valueHTMLs;
+        let values = Array.isArray(value) ? value : [value];
+        switch (columnWithExtention.valueEditor) {
+            case 'Number':
+                valueHTMLs = values.map(v => this.__getFormattedNumberValue({ value: v, column }));
+                break;
+            case 'DateTime':
+                valueHTMLs = values.map(v => this.__getFormattedDateTimeValue({ value: v, column }));
+                break;
+            case 'Duration':
+                valueHTMLs = values.map(v => this.__getFormattedDurationValue({ value: v, column }));
+                break;
+            case 'Datalist':
+                valueHTMLs = values.map(v => this.__getFormattedReferenceValue({ value: v, column }));
+                break;
+            case 'Boolean':
+                valueHTMLs = values.map(v => this.__getFormattedBooleanValue({ value: v, column }));
+                break;
+            case 'MembersSplit':
+                valueHTMLs = values.map(v => this.__getFormattedUserValue({ value: v, column }));
+                break;
+            case 'Document':
+                valueHTMLs = values.map(v => this.__getFormattedDocumentValue({ value: v, column }));
+                break;
+            default:
+                valueHTMLs = values.map(v => v || '');
+        }
+        return valueHTMLs.join();
     },
 
     __getTitle({ values, column, model }) {

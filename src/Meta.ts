@@ -1,3 +1,4 @@
+import LocalizationService from 'services/LocalizationService';
 import coreIcons from './form/editors/impl/iconEditor/icons.json';
 
 export const contextIconType = {
@@ -128,6 +129,31 @@ export const splitViewTypes = {
     HORIZONTAL: 'SplitHorizontal',
 };
 
+export const complexValueTypes = {
+    value: 'value',
+    context: 'context',
+    expression: 'expression',
+    script: 'script',
+    template: 'template'
+};
+
+export const getComplexValueTypesLocalization = complexValueType => {
+    switch (complexValueType) {
+        case complexValueTypes.value:
+            return LocalizationService.get('CORE.FORM.EDITORS.EXPRESSION.VALUE')
+        case complexValueTypes.context:
+            return LocalizationService.get('CORE.FORM.EDITORS.EXPRESSION.ATTRIBUTE')
+        case complexValueTypes.expression:
+            return LocalizationService.get('CORE.FORM.EDITORS.EXPRESSION.EXPRESSION')
+        case complexValueTypes.script:
+            return LocalizationService.get('CORE.FORM.EDITORS.EXPRESSION.CSHARPSCRIPT')
+        case complexValueTypes.template:
+            return LocalizationService.get('CORE.FORM.EDITORS.EXPRESSION.TEMPLATE')
+        default:
+            return '';
+    }
+};
+
 export default {
     objectPropertyTypes,
     contextIconType,
@@ -135,5 +161,7 @@ export default {
     splitViewTypes,
     iconsNames,
     coreIcons,
-    objectPropertyFormats
+    objectPropertyFormats,
+    complexValueTypes,
+    getComplexValueTypesLocalization
 };

@@ -726,71 +726,35 @@ _:-ms-lang(x),
 }
 
 .collapsible-btn {
-    position: relative;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 20px;
-    height: 20px;
+    font-size: 1.4em;
     cursor: pointer;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    /* background-image: var(--collapse-icon); */
-    vertical-align: middle;
-    z-index: 1;
-}
-
-.context-collapsible-btn {
-    position: relative;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    /* background-image: var(--collapse-icon); */
-    vertical-align: middle;
+    margin-right: 3px;
     transition-property: transform;
     transition-duration: 300ms;
-    transform: rotate(90deg);
-}
-
-.collapsible-btn svg,
-.context-collapsible-btn svg {
-    width: 70%;
-    height: 70%;
-}
-
-.collapsible-btn.collapsible-btn_expanded {
-    transform: rotate(90deg);
-}
-
-.context-collapsible-btn.collapsible-btn_expanded {
-    transform: rotate(0deg);
+    top: 2px;
 }
 
 .cell .collapsible-btn {
+    color: #636262;
+}
+
+.context-collapsible-btn {
+    position: absolute;
+    right: 5px;
+    font-size: 1.4em;
+    color: #636262;
+    cursor: pointer;
+    margin-right: 3px;
+    transition-property: transform;
+    transition-duration: 300ms;
+}
+
+.collapsible-btn:not(.collapsible-btn_expanded) {
     transform: rotate(-90deg);
-    background: none;
-    fill: #636262;
-    left: 0;
 }
 
-.cell .collapsible-btn svg {
-    transform: translate(3px, 2px);
-}
-
-.cell .collapsible-btn.collapsible-btn_expanded svg {
-    transform: translate(3px, 1px);
-}
-
-.cell .collapsible-btn.collapsible-btn_expanded {
-    transform: rotate(0deg);
-    background: none;
+.context-collapsible-btn:not(.collapsible-btn_expanded) {
+    transform: rotate(90deg);
 }
 
 /* dropdown-list */

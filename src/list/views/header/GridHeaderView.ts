@@ -39,9 +39,6 @@ const GridHeaderView = Marionette.View.extend({
         _.bindAll(this, '__draggerMouseUp', '__draggerMouseMove', '__handleColumnSort');
         this.listenTo(this.gridEventAggregator, 'update:collapse:all', this.__updateCollapseAll);
         this.listenTo(this.collection, 'check:all check:none check:some', this.__updateState);
-        // if (options.showRowIndex) {
-        //     this.listenTo(this.collection, 'reset update', this.__updateIndexCellWidth);
-        // }
     },
 
     template: Handlebars.compile(template),
@@ -109,8 +106,9 @@ const GridHeaderView = Marionette.View.extend({
         }
         if (this.options.isTree) {
             this.$el
-                .find('.header-column-wrp')[0]
-                .insertAdjacentHTML('afterbegin', `<span class="collapsible-btn js-collapsible-button ${this.getOption('expandOnShow') === true ? classes.expanded : ''}"></span>`);
+                .find('.header-column-wrp')[0]                
+                .insertAdjacentHTML('afterbegin', `<i class="js-tree-first-cell collapsible-btn ${classes.collapsible}
+                fa fa-angle-down ${this.getOption('expandOnShow') === true ? classes.expanded : ''}"></i/`);
         }
 
         this.ui.gridHeaderColumn.each((i, el) => {
@@ -372,21 +370,7 @@ const GridHeaderView = Marionette.View.extend({
                 this.ui.checkbox.get(0).innerHTML = '';
                 break;
         }
-    },
-    
-    // __updateIndexCellWidth() {
-    //     const selectionCellEl = this.el.firstElementChild;
-
-    //     if (!this.collection.length) {
-    //         selectionCellEl.style.width = '';
-    //         selectionCellEl.style.minWidth = '';
-    //         return;
-    //     } 
-    //     const lengthSymbolCount = this.collection.length.toString().length;
-    //     const width = `${baseSelectionCellWidth + (lengthSymbolCount) * oneSymbolWidth}px`;
-    //     selectionCellEl.style.width = width;        
-    //     selectionCellEl.style.minWidth = width;        
-    // }
+    }
 });
 
 export default GridHeaderView;

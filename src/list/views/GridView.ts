@@ -63,7 +63,7 @@ const defaultOptions = options => ({
 
 const configConstants = {
     // VISIBLE_COLLECTION_RESERVE: 20,
-    VISIBLE_COLLECTION_RESERVE_HALF: 1
+    VISIBLE_COLLECTION_RESERVE_HALF: 10
     // VISIBLE_COLLECTION_AUTOSIZE_RESERVE: 100
 };
 
@@ -148,9 +148,10 @@ export default Marionette.View.extend({
                     this.editableCellsIndexes.push(index);
                 }
             });
+            this.__debounceCheckBlur = _.debounce(this.__checkBlur, 300).bind(this);
             this.listenTo(this.collection, 'move:left', () => this.__onCursorMove(-1));
             this.listenTo(this.collection, 'move:right select:hidden', () => this.__onCursorMove(+1));
-            this.listenTo(this.collection, 'select:some select:one', (collection, opts) => this.__onCursorMove(0, opts));
+            this.listenTo(this.collection, 'select:some select:one', this.__onCollectionSelect);
             this.listenTo(this.collection, 'keydown:default', this.__onKeydown);
             this.listenTo(this.collection, 'keydown:escape', e => this.__triggerSelectedModel('selected:exit', e));
         }
@@ -203,7 +204,7 @@ export default Marionette.View.extend({
 
     updatePosition(position, shouldScrollElement = false) {
         const newPosition = this.__checkFillingViewport(position);
-        if (newPosition === this.listView.state.position || !this.collection.isSliding) {
+        if (newPosition === this.listView.state.position || !this.collection.isSliding || Math.abs(newPosition - this.listView.state.position) < configConstants.VISIBLE_COLLECTION_RESERVE_HALF - 1 ) {
             return;
         }
 
@@ -254,6 +255,20 @@ export default Marionette.View.extend({
         
         const newPosition = Math.max(0, Math.floor(nextScroll / this.listView.childHeight));
         this.updatePosition(newPosition, false);
+    },
+
+    __onCollectionSelect(collection, options) {
+        this.stopListening(GlobalEventService, 'window:mousedown:captured', this.__debounceCheckBlur);
+        this.listenTo(GlobalEventService, 'window:mousedown:captured', this.__debounceCheckBlur);
+        this.__onCursorMove(0, options);
+    },
+
+    __checkBlur(target: Element) {
+        const popupContainer = document.querySelector('.js-global-popup-stack');
+        if (!(this.el.contains(target) || this.el.contains(document.activeElement) || popupContainer?.contains(target) || popupContainer?.contains(document.activeElement))) {
+            this.collection.selectNone();
+            this.stopListening(GlobalEventService, 'window:mousedown:captured', this.__debounceCheckBlur);
+        }
     },
 
     __onCursorMove(delta, options = {}) {

@@ -48,11 +48,10 @@ export default Marionette.View.extend({
     },
 
     events: {
+        'click @ui.collapsibleButton': '__toggleCollapse',
         'pointerdown @ui.checkbox': '__handleCheckboxClick',
         click: '__handleClick',
         dblclick: '__handleDblClick',
-        'pointerdown @ui.collapsibleButton': '__toggleCollapse',
-        'click @ui.collapsibleButton': (event: MouseEvent) => event.stopPropagation(),
         dragstart: '__handleDragStart',
         dragend: '__handleDragEnd',
         dragover: '__handleDragOver',
@@ -290,18 +289,15 @@ export default Marionette.View.extend({
             if (hasChildren) {
                 el.insertAdjacentHTML(
                     'beforeend',
-                    `<div class="${classes.collapsible} context-collapse-button"><span class="js-tree-first-cell context-collapsible-btn ${
-                        this.model.collapsed === false ? classes.expanded : ''
-                    }"><svg viewBox="0 0 12 12"><polygon class="d-svg-icons d-svg-icons_arrow" points="8,2 4.5,5.5 1,2 0,2 0,3 4,7 5,7 9,3 9,2 "/></svg></span></div>`
+                    `<i class="${classes.collapsible} js-tree-first-cell context-collapsible-btn fa fa-angle-down ${this.model.collapsed === false ? classes.expanded : ''}"></i>`
                 );
             }
             isContext.style.marginLeft = `${margin + defaultOptions.subGroupMargin}px`;
         } else if (hasChildren) {
             el.insertAdjacentHTML(
                 'afterbegin',
-                `<span class="js-tree-first-cell collapsible-btn ${classes.collapsible} ${
-                    this.model.collapsed === false ? classes.expanded : ''
-                }" style="margin-left:${margin}px;"><svg viewBox="0 0 12 12"><polygon class="d-svg-icons d-svg-icons_arrow" points="8,2 4.5,5.5 1,2 0,2 0,3 4,7 5,7 9,3 9,2 "/></svg></span>`
+                `<i class="js-tree-first-cell collapsible-btn ${classes.collapsible}
+                 fa fa-angle-down ${this.model.collapsed === false ? classes.expanded : ''}" style="margin-left:${margin}px;"></i/`
             );
         } else {
             el.insertAdjacentHTML('afterbegin', `<span class="js-tree-first-cell" style="margin-left:${margin + defaultOptions.subGroupMargin}px;"></span>`);
@@ -375,7 +371,7 @@ export default Marionette.View.extend({
                 const isFocusChangeNeeded = columnIndex !== this.lastPointedIndex && target && !isErrorButtonClicked;
                 // change boolean value immediatly
                 if (column.type === objectPropertyTypes.BOOLEAN && isFocusChangeNeeded) {
-                    const newValue = column.storeArray ? [!this.model.get(column.key)?.[0]] : this.model.get(column.key);
+                    const newValue = column.storeArray ? [!this.model.get(column.key)?.[0]] : !this.model.get(column.key);
                     this.model.set(column.key, newValue);
                 }
                 setTimeout(
@@ -384,8 +380,8 @@ export default Marionette.View.extend({
                 );
             } else  {
                 const values = this.model.get(column.key);
-                if (values?.length > 1) {
-                    this.__showDropDown(values, columnIndex);
+                if (values?.length > 1 && this.multiValueShownIndex !== columnIndex)  {
+                    this.__showDropDown(columnIndex);
                 }
             }
         }
@@ -393,10 +389,15 @@ export default Marionette.View.extend({
         this.gridEventAggregator.trigger('click', this.model);
     },
 
-    __showDropDown(values: Array<any>, columnIndex: number) {
-        const column = this.options.columns[columnIndex];
-        this.multiValuePopout = CellViewFactory.tryGetMultiValueCellPanel(column, this.model, this.__getCellByColumnIndex(columnIndex));
-        this.multiValuePopout?.open();
+    __showDropDown(index: number) {
+        const column = this.options.columns[index];
+        this.lastShowDropodwnIndex = 
+        this.multiValuePopout = CellViewFactory.tryGetMultiValueCellPanel(column, this.model, this.__getCellByColumnIndex(index));
+        if (this.multiValuePopout) {
+            this.multiValuePopout.open();
+            this.multiValuePopout.on('close', () => delete this.multiValueShownIndex);
+            this.multiValueShownIndex = index;
+        }
     },
 
     __getCellByColumnIndex(columnIndex: number): Element {
@@ -424,6 +425,9 @@ export default Marionette.View.extend({
         this.el.replaceChild(cellView.el, cellEl);
         cellView.triggerMethod('before:attach');
         cellView.triggerMethod('attach');
+        if (this.getOption('isTree') && index === 0) {
+            this.insertFirstCellHtml(true);
+        }  
         this.__updateValidationErrorForColumn({ column, index });
     },    
 
@@ -465,7 +469,7 @@ export default Marionette.View.extend({
         this.__deselectPointed();
     },
 
-    __toggleCollapse() {
+    __toggleCollapse(event: MouseEvent) {
         this.updateCollapsed(this.model);
         if (this.model.collapsed === undefined ? false : !this.model.collapsed) {
             this.model.collapse();
@@ -473,7 +477,7 @@ export default Marionette.View.extend({
             this.model.expand();
         }
         this.trigger('toggle:collapse', this.model);
-        return false;
+        event.stopPropagation();
     },
 
     __onModelChecked() {
@@ -518,14 +522,11 @@ export default Marionette.View.extend({
 
     __deselectPointed() {
         if (this.lastPointedEl) {
-            const lastEditor = this.lastPointedEl.querySelector('input') || this.lastPointedEl.querySelector('[class~=editor]');
-            if (lastEditor && lastEditor === document.activeElement) {
-                lastEditor.blur();
-            }
             this.lastPointedEl.classList.remove(classes.cellFocused);
         }
         if (this.lastPointedIndex > -1) {
             const column = this.options.columns[this.lastPointedIndex];
+            this.cellViewsByKey[column.key]?.blur?.();
             this.__insertReadonlyCell({ column, index: this.lastPointedIndex })
             delete this.lastPointedIndex; 
         }
@@ -533,8 +534,9 @@ export default Marionette.View.extend({
 
     __selectPointed(columnIndex: number, isFocusEditor: boolean, isFocusChangeNeeded = true, isErrorButtonClicked = false) {
         let pointedEl = this.__getCellByColumnIndex(columnIndex);
-        if (pointedEl == null) return;
-
+        if (pointedEl == null) {
+            return;
+        }
         if (this.lastPointedEl && this.lastPointedEl !== pointedEl) {
             this.__deselectPointed();
         }
@@ -546,23 +548,26 @@ export default Marionette.View.extend({
             pointedEl = this.__getCellByColumnIndex(columnIndex); // override pointedEl because of replaceChild
             this.gridEventAggregator.pointedCell = columnIndex;
             this.lastPointedIndex = columnIndex;
-            const editors = pointedEl.querySelectorAll('input,[class~=editor]');
-            const input = pointedEl.querySelector('input');
+            this.cellViewsByKey[column.key]?.focus?.();
+            // const editors = pointedEl.querySelectorAll('input,[class~=editor]');
+            // const input = pointedEl.querySelector('input');
 
-            if (input) {
-                if (input.classList.contains('input_duration')) {
-                    setTimeout(() => input.focus(), 0);
-                } else {
-                    input.focus();
-                }
-            } else if (editors) {
-                editors[0].focus();
-            }
+            // if (input) {
+            //     if (input.classList.contains('input_duration')) {
+            //         setTimeout(() => input.focus(), 0);
+            //     } else {
+            //         input.focus();
+            //     }
+            // } else if (editors) {
+            //     editors[0].focus();
+            // }
         } else if (this.lastPointedIndex > -1 && isFocusChangeNeeded) {
             const column = this.options.columns[this.lastPointedIndex];
             this.__insertReadonlyCell({ column, index: this.lastPointedIndex })
             pointedEl = this.__getCellByColumnIndex(this.lastPointedIndex);
             delete this.lastPointedIndex; 
+            pointedEl.focus();
+        } else if (this.lastPointedIndex === undefined) {
             pointedEl.focus();
         }
         if (isErrorButtonClicked) {

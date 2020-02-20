@@ -124,6 +124,11 @@ export default formRepository.editors.ContextSelect = BaseEditorView.extend({
         this.render();
     },
 
+    focus() {
+        BaseEditorView.prototype.focus.apply(this, arguments);
+        this.popoutView.open();
+    },
+
     __value(value, triggerChange, newValue) {
         this.value = newValue || value;
 

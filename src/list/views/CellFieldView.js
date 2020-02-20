@@ -5,7 +5,12 @@ export default class CellFieldViewClass extends FieldView {
         options.showLabel = false;
         options.showHelpText = false;
         const { validators, ...rest } = options.schema;
-        options.schema = { ...rest };
+        options.schema = {
+            autocommit: true,
+            isButtonLimitMode: true,
+            maxButtonItems: 1,
+            ...rest
+        };
         super(options);
     }
 }

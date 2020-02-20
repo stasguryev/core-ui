@@ -3,8 +3,54 @@ import CanvasView from 'demoPage/views/CanvasView';
 // 1. Get some data
 export default function () {
     const data = [];
-    const childLength = 3;
+    const childLength = 14;
     const treeHeight = 4;
+
+    const getValueEditorByIndex = i => {
+        switch (i % (childLength / 2)) {
+            case 1:
+                return 'Text';
+            case 2:
+                return 'Number';
+            case 3:
+                return 'DateTime';
+            case 4:
+                return 'Duration';
+            case 5:
+                return 'Datalist';
+            case 6:
+                return 'Document';
+            case 7:
+                return 'Boolean';
+            case 0:
+                return 'MemberSplit';
+            default:
+                return 'Text';
+        }
+    };
+
+    const getPropertyTypeByIndex = i => {
+        switch (i % (childLength / 2)) {
+            case 1:
+                return 'Text';
+            case 2:
+                return 'Number';
+            case 3:
+                return 'DateTime';
+            case 4:
+                return 'Duration';
+            case 5:
+                return 'Reference';
+            case 6:
+                return 'Document';
+            case 7:
+                return 'Boolean';
+            case 0:
+                return 'User';
+            default:
+                return 'Text';
+        }
+    };
 
     const createTree = (parentCollection, level, parent = null) => {
         for (let i = 0; i < childLength; i++) {
@@ -17,8 +63,78 @@ export default function () {
                 userCell: [{ id: 'user.1', columns: ['J. J.'] }],
                 referenceCell: { name: 'Ref 1' },
                 enumCell: { valueExplained: ['123'] },
-                documentCell: [{ id: '1', name: 'Doc 1', columns: ['Doc 1', 'url'] }, { id: '2', name: 'Doc 2', columns: ['Doc 2', 'url2'] }]
+                documentCell: [{ id: '1', name: 'Doc 1', columns: ['Doc 1', 'url'] }, { id: '2', name: 'Doc 2', columns: ['Doc 2', 'url2'] }],
             };
+            let propertyRule;
+            switch (i % childLength) {
+                case 1:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.textCell
+                    };
+                    break;
+                case 2:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.numberCell
+                    };
+                    break;
+                case 3:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.dateTimeCell
+                    };
+                    break;
+                case 4:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.durationCell
+                    };
+                    break;
+                case 5:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.referenceCell
+                    };
+                    break;
+                case 6:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.documentCell
+                    };
+                    break;
+                case 7:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.booleanCell
+                    };
+                    break;
+                case 8:
+                    propertyRule = {
+                        type: 'value',
+                        value: item.userCell
+                    };
+                    break;
+                case 9:
+                    propertyRule = {
+                        type: 'context',
+                        value: ['op.1']
+                    };
+                    break;
+                case 10:
+                    propertyRule = {
+                        type: 'script',
+                        value: 'Some script'
+                    };
+                    break;
+                default:
+                    propertyRule = {
+                        type: 'expression',
+                        value: 'Some expression'
+                    };
+                    break;
+            }
+            item.propertyRule = propertyRule;
             item.parent = parent;
             if (level > 0) {
                 const children = [];
@@ -35,8 +151,8 @@ export default function () {
     const columns = [
         {
             key: 'textCell',
-            type: 'Datalist',
-            dataType: 'Instance',
+            type: 'Text',
+            dataType: 'Text',
             helpText: 'Boolean Cell',
             title: 'TextCell',
             sorting: 'asc',
@@ -80,6 +196,7 @@ export default function () {
             title: 'Reference Cell',
             helpText: 'Reference Cell',
             editable: true,
+            dataType: 'Instance',
             width: 100
         },
         {
@@ -110,8 +227,9 @@ export default function () {
             width: 300,
             ontologyService: null,
             id: "pa.7",
-            schemaExtension: () => ({
-                propertyTypes: [_.uniqueId('type')]
+            schemaExtension: model => ({
+                propertyTypes: [getPropertyTypeByIndex(model.collection.parentCollection.indexOf(model))],
+                valueEditor: getValueEditorByIndex(model.collection.parentCollection.indexOf(model))
             }),
             context: {
                 'oa.1': [
@@ -276,10 +394,7 @@ export default function () {
                     }
                 ]
             },
-            recordTypeId: 'oa.1',
-            schemaExtension: () => ({
-                propertyTypes: ['Text']
-            })
+            recordTypeId: 'oa.1'
         }
     ];
 

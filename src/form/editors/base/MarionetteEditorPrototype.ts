@@ -210,13 +210,15 @@ export default function(viewClass: Marionette.View | Marionette.CollectionView) 
                     class: className,
                     id
                 });
-                const labelHtml = showLabel ? `<label class="form-label__txt" title="${title || ''}" for="${this.options.fieldId}">${title || ''}</label>` : '';
-                this.fieldEl.insertAdjacentHTML(
-                    'afterbegin',
-                    `<div class="form-label ${showLabel ? '' : 'form-label--empty'}">
-                        ${labelHtml}
-                    </div>`
-                );
+                if (showLabel) {
+                    const labelHtml = `<label class="form-label__txt" title="${title || ''}" for="${this.options.fieldId}">${title || ''}</label>`;
+                    this.fieldEl.insertAdjacentHTML(
+                        'afterbegin',
+                        `<div class="form-label ${title ? '' : 'form-label--empty'}">
+                            ${labelHtml}
+                        </div>`
+                    );
+                }
                 this.editorEl = this._createElement(this.tagName);
                 this.$editorEl = Backbone.$(this.editorEl);
                 var attrs = { ..._.result(this, 'attributes') };
