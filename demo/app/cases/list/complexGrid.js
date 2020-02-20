@@ -1,10 +1,10 @@
 import CanvasView from 'demoPage/views/CanvasView';
 
 // 1. Get some data
-export default function () {
+export default function() {
     const data = [];
-    const childLength = 14;
-    const treeHeight = 4;
+    const childLength = 16;
+    const treeHeight = 2;
 
     const getValueEditorByIndex = i => {
         switch (i % (childLength / 2)) {
@@ -19,11 +19,11 @@ export default function () {
             case 5:
                 return 'Datalist';
             case 6:
-                return 'Document';
+                return 'Datalist';
             case 7:
                 return 'Boolean';
             case 0:
-                return 'MemberSplit';
+                return 'Datalist';
             default:
                 return 'Text';
         }
@@ -55,15 +55,16 @@ export default function () {
     const createTree = (parentCollection, level, parent = null) => {
         for (let i = 0; i < childLength; i++) {
             const item = {
+                index: i,
                 textCell: `Text Cell ${i}`,
                 numberCell: i + 1,
                 dateTimeCell: '2015-07-24T08:13:13.847Z',
                 durationCell: 'P12DT5H42M',
                 booleanCell: true,
-                userCell: [{ id: 'user.1', columns: ['J. J.'] }],
+                userCell: [{ id: 'user.1', name: 'someUser' }],
                 referenceCell: { name: 'Ref 1' },
                 enumCell: { valueExplained: ['123'] },
-                documentCell: [{ id: '1', name: 'Doc 1', columns: ['Doc 1', 'url'] }, { id: '2', name: 'Doc 2', columns: ['Doc 2', 'url2'] }],
+                documentCell: [{ id: '1', name: 'Doc 1', columns: ['Doc 1', 'url'] }, { id: '2', name: 'Doc 2', columns: ['Doc 2', 'url2'] }]
             };
             let propertyRule;
             switch (i % childLength) {
@@ -226,11 +227,28 @@ export default function () {
             editable: true,
             width: 300,
             ontologyService: null,
-            id: "pa.7",
-            schemaExtension: model => ({
-                propertyTypes: [getPropertyTypeByIndex(model.collection.parentCollection.indexOf(model))],
-                valueEditor: getValueEditorByIndex(model.collection.parentCollection.indexOf(model))
-            }),
+            id: 'pa.7',
+            schemaExtension: model => {
+                const index = model.get('index');
+                const extension = {
+                    propertyTypes: [getPropertyTypeByIndex(index)],
+                    valueEditor: getValueEditorByIndex(index)
+                };
+                switch ((index % childLength) / 2) {
+                    case 6:
+                        extension.format = 'document';
+                        break;
+                    case 0:
+                        extension.format = 'user';
+                        break;
+                    case 11:
+                        extension.readonly = true;
+                        break;
+                    default:
+                        break;
+                }
+                return extension;
+            },
             context: {
                 'oa.1': [
                     {
@@ -411,7 +429,7 @@ export default function () {
             showRowIndex: true,
             childrenAttribute: 'children',
             title: 'Complex grid'
-    },
+        },
         collection: data
     });
 
