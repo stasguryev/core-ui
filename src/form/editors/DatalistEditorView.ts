@@ -327,14 +327,14 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
         const btn = this.dropdownView;
         this.listenTo(btn, 'focus', this.__onButtonFocus);
         this.listenTo(btn, 'blur', this.__onButtonBlur);
-        this.listenTo(btn, 'click', () => this.__onButtonClick());
         this.listenTo(btn, 'input:keydown', this.__onInputKeydown);
         this.listenTo(btn, 'input:search', this.__onInputSearch);
-        this.listenTo(btn, 'pointerdown', (button, e: PointerEvent) => {
+        this.listenTo(btn, 'click', (e: MouseEvent) => {
             if (e.target.tagName === 'A') {
+                e.preventDefault();
                 e.stopPropagation();
-                return;
             }
+
             this.__onButtonClick();
         });
     },
@@ -543,7 +543,10 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
         this.debouncedFetchUpdateFilter();
     },
 
-    __fetchUpdateFilter(text = this.__getInputValue(), { forceCompareText = this.options.fetchFiltered && !this.isLastFetchSuccess, openOnRender = false, open = true } = {}) {
+    __fetchUpdateFilter(
+        text = this.__getInputValue(),
+        { forceCompareText = this.options.fetchFiltered && !this.isLastFetchSuccess, openOnRender = false, open = true, selected = this.value } = {}
+    ) {
         const searchText = (text || '').toUpperCase().trim();
         if (this.searchText === searchText && !forceCompareText) {
             this.__updateSelectedOnPanel();
@@ -557,20 +560,20 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
         this.__setInputValue(text);
 
         if (this.options.fetchFiltered) {
-            return this.__fetchDataAndOpen(this.searchText, { openOnRender, open });
+            return this.__fetchDataAndOpen(this.searchText, { openOnRender, open, selected });
         }
 
         this.__filterPanelCollection(this.searchText);
         open && this.open(openOnRender);
     },
 
-    async __fetchDataAndOpen(fetchedDataForSearchText: string, options: { open: boolean, openOnRender: boolean }) {
+    async __fetchDataAndOpen(fetchedDataForSearchText: string, options: { open: boolean, openOnRender: boolean, selected: any }) {
         this.__fetchOptionsQueue.add(options);
         this.triggerNotReady();
         this.panelCollection.pointOff();
         try {
             const collection = this.options.collection;
-            await collection.fetch({ data: { filter: fetchedDataForSearchText } });
+            await collection.fetch({ data: { filter: fetchedDataForSearchText, selected: options.selected } });
 
             if (this.searchText !== fetchedDataForSearchText) {
                 throw new Error('searched was updated');
@@ -586,6 +589,7 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
             this.triggerReady(); //don't move to finally, recursively.
             this.__fetchOptionsQueue.delete(options);
         } catch (e) {
+            console.log(e);
             this.isLastFetchSuccess = false;
             this.triggerReady();
             this.__fetchOptionsQueue.delete(options);
@@ -719,9 +723,9 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
     __adjustValueForIdMode(value, isLoadIfNeeded) {
         if (this.options.fetchFiltered && isLoadIfNeeded && !this.isLastFetchSuccess && this.options.collection.length === 0) {
             this.listenToOnce(this, 'view:ready', () => {
-                this.setValue(value);
+                this.setValue(value, { isLoadIfNeeded: false });
             });
-            this.__fetchUpdateFilter('', { forceCompareText: true });
+            this.__fetchUpdateFilter('', { forceCompareText: true, selected: value });
         }
         return this.__adjustValueFromLoaded(value);
     },
@@ -785,10 +789,23 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
         return true;
     },
 
-    __onValueSelect(): void {
+    __onSpaceValueSelect(): void {
         if (this.panelCollection.lastPointedModel) {
             this.panelCollection.lastPointedModel.toggleSelected();
         }
+    },
+
+    __onEnterValueSelect(event: KeyboardEvent): void {
+        if (this.dropdownView.isOpen) {
+            const lastPointedModel = this.panelCollection.lastPointedModel;
+
+            if (lastPointedModel && !lastPointedModel.selected) {
+                this.panelCollection.lastPointedModel.toggleSelected();
+            }
+            
+            this.__toggleDropdown();
+            stop(event);
+        }   
     },
 
     __onPanelSelected(model: Backbone.Model, options = {}): void {
@@ -946,9 +963,10 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
         if (!this.__getIsQuantityControl(e)) {
             return;
         }
+
         this.__isQuantityControl = true;
         if (!this.dropdownView.isOpen) {
-            if (e.keyCode !== keyCode.ESCAPE) {
+            if (e.keyCode !== keyCode.ESCAPE && e.keyCode !== keyCode.ENTER) {
                 this.open();
             }
             return;
@@ -1039,9 +1057,11 @@ export default (formRepository.editors.Datalist = BaseEditorView.extend({
                 this.moveCursorBy(-1);
                 break;
             case keyCode.ENTER:
+                this.__onEnterValueSelect(e);
+                break;
             case keyCode.SPACE:
                 stop(e);
-                this.__onValueSelect();
+                this.__onSpaceValueSelect();
                 break;
             default:
                 this.__isQuantityControl = false;

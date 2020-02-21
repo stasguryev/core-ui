@@ -1,6 +1,4 @@
 import LocalizationService from 'services/LocalizationService';
-import coreIcons from './form/editors/impl/iconEditor/icons.json';
-
 export const contextIconType = {
     reference: 'link',
     instance: 'link',
@@ -24,6 +22,8 @@ export const contextIconType = {
     decimal: 'superscript',
     number: 'superscript',
     action: 'hand-pointer',
+    role: 'user-shield',
+    orgStructure: 'bring-front',
     actionbutton: 'hand-pointer',
     text: 'font',
     string: 'font',
@@ -160,7 +160,6 @@ export default {
     presentingComponentsTypes,
     splitViewTypes,
     iconsNames,
-    coreIcons,
     objectPropertyFormats,
     complexValueTypes,
     getComplexValueTypesLocalization

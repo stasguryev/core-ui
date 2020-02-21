@@ -28,7 +28,8 @@ const defaultOptions = {
     displayInline: false,
     ontologyService: null,
     config: null,
-    getTemplate: null
+    getTemplate: null,
+    solution: null
 };
 
 export default (formRepository.editors.Complex = BaseEditorView.extend({
@@ -115,7 +116,7 @@ export default (formRepository.editors.Complex = BaseEditorView.extend({
                     this.__showTypeEditor();
                     return;
                 }
-                if (Array.isArray(this.value.value) && this.value.value.length === 1) {
+                if (Array.isArray(this.value.value) && this.value.value.length === 1 && !(this.valueEditor instanceof formRepository.editors.Datalist)) {
                     this.valueEditor.setValue(this.value.value[0]);
                 } else {
                     this.valueEditor.setValue(this.value.value);
@@ -266,7 +267,8 @@ export default (formRepository.editors.Complex = BaseEditorView.extend({
             showMode: this.options.codeEditorMode,
             ontologyService: this.options.ontologyService,
             config: this.options.config,
-            getTemplate: this.options.getTemplate
+            getTemplate: this.options.getTemplate,
+            solution: this.options.solution
         };
 
         this.expressionEditor = new CodeEditorView(expressionEditorOptionsOptions);
