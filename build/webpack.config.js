@@ -84,7 +84,7 @@ module.exports = options => {
                             options: {
                                 sourceMap: true,
                                 plugins: () => {
-                                    const plugins = [require('postcss-preset-env')(), require('postcss-merge-rules')()];
+                                    const plugins = [require('postcss-preset-env')()];
                                     if (UGLIFY) {
                                         plugins.push(
                                             cssnano({

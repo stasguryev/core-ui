@@ -45,9 +45,8 @@ module.exports = () => {
                             loader: MiniCssExtractPlugin.loader,
                             options: {
                                 hmr: process.env.NODE_ENV === 'development',
-                                reloadAll: true,
+                                reloadAll: true
                             }
-                            // loader: 'style-loader'
                         },
                         {
                             loader: 'css-loader',
@@ -129,7 +128,7 @@ module.exports = () => {
                 }
             ]
         },
-        plugins: [                                
+        plugins: [
             new MiniCssExtractPlugin({
                 filename: 'styles.[contenthash].css',
                 chunkFilename: '[id].[contenthash].css'
