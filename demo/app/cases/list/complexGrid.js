@@ -228,6 +228,7 @@ export default function() {
             width: 300,
             ontologyService: null,
             id: 'pa.7',
+            getReadonly: model => model.get('index') === 11,
             schemaExtension: model => {
                 const index = model.get('index');
                 const extension = {

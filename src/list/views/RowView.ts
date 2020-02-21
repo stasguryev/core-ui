@@ -7,9 +7,10 @@ import dropdown from 'dropdown';
 import MobileService from '../../services/MobileService';
 import CellViewFactory from '../CellViewFactory';
 import { Column, GridItemModel } from '../types/types';
-import { objectPropertyTypes } from '../../Meta';
+import { objectPropertyTypes, complexValueTypes } from '../../Meta';
 import draggableDots from '../templates/draggableDots.html';
 import ErrorsPanelView from '../../views/ErrorsPanelView';
+import { cmpPos } from 'codemirror';
 
 const config = {
     TRANSITION_DELAY: 400
@@ -364,7 +365,9 @@ export default Marionette.View.extend({
             });
         }
         if (column) {
-            if (this.__isColumnEditable(columnIndex)) {
+            if (this.__isColumnEditable(columnIndex)
+             // temporary desicion for complex cells
+             || (column.type === 'Complex' && [complexValueTypes.expression, complexValueTypes.script].includes(this.model.get(column.key)?.type))) {
                 // todo: find more clear way to handle this case
                 const target = <Element>e.target;
                 const isErrorButtonClicked = target && target.classList.contains('js-error-button');
