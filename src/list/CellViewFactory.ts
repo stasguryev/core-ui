@@ -474,11 +474,16 @@ class CellViewFactory implements ICellViewFactory {
                     break;
                 }
                 case complexValueTypes.expression:
-                    valueInnerHTML = value.value ? 'Edit' : 'Not set';
-                    title = value.value;
-                    break;
                 case complexValueTypes.script:
-                    valueInnerHTML = value.value ? 'Edit' : 'Not set';
+                    if (value.value) {
+                        if (column.getReadonly?.(model)) {
+                            valueInnerHTML = Localizer.get('CORE.FORM.EDITORS.CODE.SHOW');
+                        } else {
+                            valueInnerHTML = Localizer.get('CORE.FORM.EDITORS.CODE.EDIT');
+                        }
+                    } else {
+                        valueInnerHTML = Localizer.get('CORE.FORM.EDITORS.CODE.EMPTY');
+                    }
                     title = value.value;
                     break;
                 case complexValueTypes.template:

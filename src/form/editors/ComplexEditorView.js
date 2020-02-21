@@ -22,7 +22,6 @@ const defaultOptions = {
     enabled: true,
     valueEditor: formRepository.editors.Text,
     valueEditorOptions: {},
-    defaultType: complexValueTypes.value,
     expressionEditorHeight: 300,
     scriptEditorHeight: 300,
     codeEditorMode: 'normal',
@@ -75,9 +74,10 @@ export default (formRepository.editors.Complex = BaseEditorView.extend({
         if (_.isString(this.options.templateEditor)) {
             this.options.templateEditor = formRepository.editors[this.options.templateEditor];
         }
+        this.__createValueTypesCollection();
         if (!this.value || !Object.keys(this.value).length) {
             this.value = {
-                type: this.options.defaultType,
+                type: this.valueTypeCollection.first().id,
                 value: null
             };
         }
@@ -86,7 +86,6 @@ export default (formRepository.editors.Complex = BaseEditorView.extend({
             key: this.key
         });
 
-        this.__createValueTypesCollection();
         this.options.showTypeEditor = this.valueTypeCollection.length > 1;
         this.__isFirstValueSetting = true;
     },
@@ -95,7 +94,7 @@ export default (formRepository.editors.Complex = BaseEditorView.extend({
         let value = newValue;
         if (!value || !Object.keys(this.value).length) {
             value = {
-                type: this.options.defaultType,
+                type: this.valueTypeCollection.first().id,
                 value: null
             };
         }
@@ -183,6 +182,7 @@ export default (formRepository.editors.Complex = BaseEditorView.extend({
     },
 
     blur() {
+        BaseEditorView.prototype.focus.apply(this, arguments);
         this.__checkEditorExist(this.value.type);
         switch (this.value.type) {
             case complexValueTypes.value:

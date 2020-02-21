@@ -487,11 +487,11 @@ svg.svg-grid-icons {
     background-clip: padding-box;
     max-width: 0; /* hack to set width less than cells content */
     width: auto;
-    border-top: none;
     border-right: 1px solid #e2e2e2;
     border-bottom: 1px solid #e2e2e2;
     border-left: none;
 }
+
 /*
 .cell,
 .cell_selection,
