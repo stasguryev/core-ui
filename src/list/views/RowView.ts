@@ -167,12 +167,28 @@ export default Marionette.View.extend({
             this.__insertCellChechbox();
         }
 
+        const customCells: Array<{ index: number, CellView: Marionette.View<Backbone.Model> }> = [];
         this.options.columns.forEach((column: Column, index: number) => {
             this.__setCustomClassToColumn(column);
-            const cellHTML = column.cellHTML || CellViewFactory.getCell(column, this.model);
-            itemsHTML.push(cellHTML);
+            if (column.cellView) {
+                customCells.push({ index, CellView: column.cellView })
+            } else {
+                const cellHTML = CellViewFactory.getCell(column, this.model);
+                itemsHTML.push(cellHTML);
+            }
         });
         this.el.innerHTML = this.itemsHTML.join('');
+        customCells.forEach(({ index, CellView }) => {
+            const cellView = this.__renderCell({ column: this.options.columns[index], index, CellView });
+            if (index === 0) {
+                this.el.insertAdjacentElement('afterbegin', cellView.el);
+            } else {
+                const childElBefore = this.__getCellByColumnIndex(index - 1);
+                childElBefore.insertAdjacentElement('afterend', cellView.el);
+            }
+            cellView.triggerMethod('before:attach');
+            cellView.triggerMethod('attach');
+        })
     },
 
     __handleChange() {

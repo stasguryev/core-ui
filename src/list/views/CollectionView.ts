@@ -1,4 +1,5 @@
 import { keyCode, helpers } from '../../utils';
+import { configurationConstants } from '../meta';
 import GlobalEventService from '../../services/GlobalEventService';
 import _ from 'underscore';
 import Backbone from 'backbone';
@@ -13,13 +14,6 @@ import Backbone from 'backbone';
         collection change (via Backbone.Collection events)
         position change (when we scroll with scrollbar for example): updatePosition(newPosition)
  */
-
-const config = {
-    VISIBLE_COLLECTION_RESERVE: 20,
-    VISIBLE_COLLECTION_RESERVE_HALF: 10,
-    VISIBLE_COLLECTION_AUTOSIZE_RESERVE: 100,
-    HEIGHT_STOCK_TO_SCROLL: 1, //px, border-collapse property for table (grid-content-wrp) add this 1 px
-};
 
 const heightOptions = {
     AUTO: 'auto',
@@ -461,7 +455,7 @@ export default Marionette.PartialCollectionView.extend({
         this.state.viewportHeight = Math.max(1, Math.floor(Math.min(availableHeight, window.innerHeight) / this.childHeight));
 
         if (this.collection.length) {
-            this.state.allItemsHeight = this.childHeight * this.collection.length + this.options.headerHeight + config.HEIGHT_STOCK_TO_SCROLL;
+            this.state.allItemsHeight = this.childHeight * this.collection.length + this.options.headerHeight + configurationConstants.HEIGHT_STOCK_TO_SCROLL;
         } else {
             this.state.allItemsHeight = 'auto';
         }
@@ -490,7 +484,7 @@ export default Marionette.PartialCollectionView.extend({
             return;
         }
 
-        this.collection.updateWindowSize(Math.max(this.minimumVisibleRows, this.state.viewportHeight + config.VISIBLE_COLLECTION_RESERVE));
+        this.collection.updateWindowSize(Math.max(this.minimumVisibleRows, this.state.viewportHeight + configurationConstants.VISIBLE_COLLECTION_RESERVE));
         if (this.getOption('showRowIndex') && this.gridEventAggregator) {
             this.gridEventAggregator.trigger('update:index');
         }

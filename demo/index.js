@@ -1,9 +1,5 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-// import 'styles/defaultFontawesome.css';
-// import 'node_modules/@fortawesome/fontawesome-free/css/fontawesome.css';
-//import 'node_modules/@fortawesome/fontawesome-free/css/solid.css';
-// import '../dist/core.css';
 import './styles';
 import core from 'comindware/core';
 
@@ -17,16 +13,10 @@ Application.appRouter = new AppRouter({
     controller: AppController
 });
 
-window.addEventListener('load', () => {
-    const app = new Application();
-    window.app = app;
-    app.once('before:start', () => (AppController.contentView = window.app.getView()));
-    app.start();
-});
-// const app = new Application();
-// window.app = app;
-// app.once('before:start', () => (AppController.contentView = window.app.getView()));
-// app.start();
+const app = new Application();
+window.app = app;
+app.once('before:start', () => (AppController.contentView = window.app.getView()));
+app.start();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

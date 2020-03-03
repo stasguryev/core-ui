@@ -14,7 +14,7 @@ import SearchBarView from '../../views/SearchBarView';
 import ConfigurationPanel from './ConfigurationPanel';
 import EmptyGridView from './EmptyGridView';
 import LayoutBehavior from '../../layout/behaviors/LayoutBehavior';
-import meta from '../meta';
+import { getDefaultActions, classes, configurationConstants } from '../meta';
 import factory from '../factory';
 import ErrorButtonView from '../../views/ErrorButtonView';
 import InfoButtonView from '../../views/InfoButtonView';
@@ -25,11 +25,6 @@ import { GraphModel } from '../../components/treeEditor/types';
 import ConfigDiff from '../../components/treeEditor/classes/ConfigDiff';
 import { Column } from '../types/types';
 
-const classes = {
-    REQUIRED: 'required',
-    ERROR: 'error',
-    TABLE_WIDTH_AUTO: 'grid-content-wrp_width-auto'
-};
 
 /*
     Public interface:
@@ -60,12 +55,6 @@ const defaultOptions = options => ({
     treeEditorConfig: new Map(),
     headerHeight: 36
 });
-
-const configConstants = {
-    // VISIBLE_COLLECTION_RESERVE: 20,
-    VISIBLE_COLLECTION_RESERVE_HALF: 10
-    // VISIBLE_COLLECTION_AUTOSIZE_RESERVE: 100
-};
 
 /**
  * @name GridView
@@ -204,14 +193,13 @@ export default Marionette.View.extend({
 
     updatePosition(position, shouldScrollElement = false) {
         const newPosition = this.__checkFillingViewport(position);
-        if (newPosition === this.listView.state.position || !this.collection.isSliding || Math.abs(newPosition - this.listView.state.position) < configConstants.VISIBLE_COLLECTION_RESERVE_HALF - 1 ) {
+        if (newPosition === this.listView.state.position || !this.collection.isSliding || Math.abs(newPosition - this.listView.state.position) < configurationConstants.VISIBLE_COLLECTION_RESERVE_HALF - 1 ) {
             return;
         }
 
         this.__updateTop();
 
-        this.collection.updatePosition(Math.max(0, newPosition - configConstants.VISIBLE_COLLECTION_RESERVE_HALF));
-
+        this.collection.updatePosition(Math.max(0, newPosition - configurationConstants.VISIBLE_COLLECTION_RESERVE_HALF));
         this.listView.state.position = newPosition;
         if (shouldScrollElement) {
             this.internalScroll = true;
@@ -252,7 +240,6 @@ export default Marionette.View.extend({
             return;
         }
         this.__prevScroll = nextScroll;
-        
         const newPosition = Math.max(0, Math.floor(nextScroll / this.listView.childHeight));
         this.updatePosition(newPosition, false);
     },
@@ -264,9 +251,12 @@ export default Marionette.View.extend({
     },
 
     __checkBlur(target: Element) {
+        if (this.isDestroyed()) {
+            return;
+        }
         const popupContainer = document.querySelector('.js-global-popup-stack');
         if (!(this.el.contains(target) || this.el.contains(document.activeElement) || popupContainer?.contains(target) || popupContainer?.contains(document.activeElement))) {
-            this.collection.selectNone();
+            this.collection.selectNone ? this.collection.selectNone() : this.collection.deselect();
             this.stopListening(GlobalEventService, 'window:mousedown:captured', this.__debounceCheckBlur);
         }
     },
@@ -776,7 +766,7 @@ export default Marionette.View.extend({
             return;
         }
 
-        this.el.classList.add(classes.ERROR);
+        this.el.classList.add(classes.error);
         this.errorCollection ? this.errorCollection.reset(errors) : (this.errorCollection = new Backbone.Collection(errors));
         if (!this.isErrorShown) {
             const errorPopout = dropdown.factory.createPopout({
@@ -797,7 +787,7 @@ export default Marionette.View.extend({
         if (!this.__checkUiReady()) {
             return;
         }
-        this.el.classList.remove(classes.ERROR);
+        this.el.classList.remove(classes.error);
         this.errorCollection && this.errorCollection.reset();
     },
 
@@ -826,7 +816,7 @@ export default Marionette.View.extend({
         if (!this.__checkUiReady()) {
             return;
         }
-        this.$el.toggleClass(classes.REQUIRED, Boolean(required));
+        this.$el.toggleClass(classes.required, Boolean(required));
     },
 
     __checkUiReady() {
@@ -897,7 +887,7 @@ export default Marionette.View.extend({
 
     __getToolbarActions() {
         let toolbarActions = [];
-        const defaultActions = meta.getDefaultActions();
+        const defaultActions = getDefaultActions();
         if (!this.options.excludeActions) {
             toolbarActions = defaultActions;
         } else if (this.options.excludeActions !== 'all') {
@@ -1067,7 +1057,7 @@ export default Marionette.View.extend({
 
         this.trigger('column:set:isHidden', { id, isHidden });
 
-        this.setClassToColumn(id, isHidden, index, meta.classes.hiddenByTreeEditorClass);
+        this.setClassToColumn(id, isHidden, index, classes.hiddenByTreeEditorClass);
     },
 
     setClassToColumn(id: string, state = false, index: number, classCell: string) {
@@ -1120,6 +1110,6 @@ export default Marionette.View.extend({
     },
 
     __toggleTableWidth() {
-        this.ui.table.get(0).classList.toggle(classes.TABLE_WIDTH_AUTO, this.headerView.isEveryColumnSetPxWidth);
+        this.ui.table.get(0).classList.toggle(classes.tableWidthAuto, this.headerView.isEveryColumnSetPxWidth);
     }
 });
