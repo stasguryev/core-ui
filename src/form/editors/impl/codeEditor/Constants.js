@@ -20,7 +20,13 @@ export default {
         attribute: 'dev-code-editor-attribute',
         template: 'dev-code-editor-template',
         colorWarning: 'dev-code-editor-warning',
-        colorError: 'dev-code-editor-error'
+        colorError: 'dev-code-editor-error',
+        hintCodemirror: 'CodeMirror-hint'
+    },
+
+    originChange: {
+        paste: 'paste',
+        inputPlus: '+input'
     },
 
     types: {

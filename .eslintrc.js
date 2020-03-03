@@ -31,8 +31,8 @@ module.exports = {
         expect: true,
         jasmine: true
     },
-    plugins: ['backbone', 'prettier'],
     extends: ['prettier'],
+    plugins: ['prettier', 'backbone'],
     rules: {
         'backbone/no-native-jquery': 1,
         'prettier/prettier': 'warn',

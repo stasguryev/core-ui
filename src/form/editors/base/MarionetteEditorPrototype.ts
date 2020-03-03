@@ -187,7 +187,10 @@ export default function(viewClass: Marionette.View | Marionette.CollectionView) 
                 this.listenTo(this.model, `change:${this.key}`, this.updateValue);
                 this.listenTo(this.model, 'sync', this.updateValue);
                 this.listenTo(this.model, 'validate:force', (e = {}) => {
-                    e.validationResult = this.validate();
+                    const validationResult = this.validate();
+                    if (validationResult) {
+                        e.validationResult = validationResult;
+                    }
                 });
                 if (options.getReadonly || options.getHidden) {
                     this.model.on('change', () => this.__updateDynamicFieldAccess(options));
@@ -459,7 +462,7 @@ export default function(viewClass: Marionette.View | Marionette.CollectionView) 
          */
         focus() {
             //TODO if focusElement === null ?
-            this.__getFocusElement().focus();
+            this.__getFocusElement().get(0).focus();
             this.hasFocus = true;
         },
 
@@ -468,7 +471,7 @@ export default function(viewClass: Marionette.View | Marionette.CollectionView) 
          */
         blur() {
             //TODO if focusElement === null ?
-            this.__getFocusElement().blur();
+            this.__getFocusElement().get(0).blur();
             this.hasFocus = false;
         },
 
